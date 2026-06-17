@@ -1,35 +1,64 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 
-app = FastAPI(title="ChefOS - AI 로봇 셰프 대시보드 v3.0")
+app = FastAPI(title="ChefOS - AI 로봇 셰프 대시보드 v4.1")
 
-# 1. 20종의 초정밀 하드코어 레시피 데이터베이스 (온도, 시간, 조리 공정 세분화)
+# 1. 초정밀 로봇 제어용 50종 밥 요리 데이터베이스
 RECIPE_DB = {
-    "치킨 마요 덮밥": {"재료": ["밥 200g", "순살치킨 150g", "마요네즈 30g", "데리야끼소스 20g", "파슬리 1g"], "조리법": "1. 섭씨 180도로 예열된 튀김기에서 순살 치킨을 정확히 4분 30초간 바삭하게 튀겨냅니다.\n2. 덮밥 전용 볼에 밥 200g을 평평하게 깔아줍니다.\n3. 튀겨진 치킨을 3cm 크기로 컷팅하여 밥 위에 정갈하게 올립니다.\n4. 로봇 팔의 듀얼 노즐을 활용해 데리야끼 소스와 마요네즈를 십자 격자무늬(Crosshatch)로 균일하게 분사한 뒤 파슬리를 뿌려 완성합니다."},
-    "PD의 밤샘 제육 덮밥": {"재료": ["밥 200g", "돼지고기 전지 180g", "고추장양념 50g", "양파 30g", "대파 10g"], "조리법": "1. 광고 제작과 영상 편집으로 밤을 지새우는 방송국 사람들을 위한 고단백 스태미나 메뉴입니다.\n2. 섭씨 220도의 웍에서 돼지고기와 썰어둔 양파를 초강불로 2분간 볶아 마이야르 반응을 극대화합니다.\n3. 특제 고추장 양념을 투입하고 1분 30초간 추가로 볶아 묵직한 숯불향을 입힙니다.\n4. 밥 옆에 고기를 산처럼 쌓고 알싸한 파채를 곁들여 즉각적인 에너지 보충이 가능하도록 서빙합니다."},
-    "15개월 알바생 짜계치 덮밥": {"재료": ["밥 200g", "짜장소스 100g", "계란 1개", "슬라이스 치즈 1장"], "조리법": "1. 15개월 장기 근무 알바생의 노하우가 듬뿍 담긴 피시방 황금 레시피를 로봇 셰프가 완벽히 재현합니다.\n2. 꾸덕한 짜장 소스를 85도에서 뭉근하게 데워 준비된 밥 위에 고르게 부어줍니다.\n3. 정확히 1분 40초간 기름에 튀기듯 조리한 서니사이드업 반숙 계란 프라이를 올립니다.\n4. 계란의 잔열이 남아있을 때 슬라이스 치즈를 덮어 자연스럽게 녹아내리도록 플레이팅합니다."},
-    "물류센터 파이팅 덮밥": {"재료": ["밥 220g", "소시지 100g", "스크램블 에그 80g", "매콤케첩 30g"], "조리법": "1. 쉴 새 없이 돌아가는 물류 현장의 든든함을 책임지는 고단백 스피드 덮밥입니다.\n2. 닭가슴살 소시지에 촘촘하게 칼집을 내고 180도 오븐에서 5분간 구워 육즙을 가둡니다.\n3. 로봇 팔을 고속 회전시켜 몽글몽글한 식감의 스크램블 에그를 30초 만에 신속하게 조리합니다.\n4. 밥 위에 소시지와 에그를 반반씩 올리고 매콤새콤한 케첩을 듬뿍 뿌려 마무리합니다."},
-    "참치 마요 덮밥": {"재료": ["밥 200g", "캔참치 120g", "마요네즈 40g", "조미김 5g", "단무지 20g"], "조리법": "1. 참치는 200N의 압력으로 프레스하여 기름기를 95% 이상 완벽하게 제거합니다.\n2. 마요네즈와 참치를 믹싱 로봇 팔을 이용해 30초간 균일하게 버무립니다.\n3. 밥 200g 위에 버무린 참치를 돔 형태로 소복하게 쌓아 올립니다.\n4. 다진 단무지를 주변에 두르고 잘게 부순 조미김을 최상단에 토핑하여 식감과 풍미를 끌어올립니다."},
-    "철야 노가다 국밥풍 덮밥": {"재료": ["밥 200g", "돼지국밥 육수 50g", "수육 고기 100g", "부추무침 30g", "다대기 15g"], "조리법": "1. 새벽 이슬을 맞으며 일하는 현장 작업자들의 얼어붙은 몸을 녹여줄 든든한 국밥 스타일의 덮밥입니다.\n2. 섭씨 95도로 가열된 진한 돼지 육수를 밥 위에 자작하게 부어 토렴 과정을 거칩니다.\n3. 얇게 썬 수육 고기를 육수 증기로 30초간 데워 촉촉하게 만든 뒤 밥 위에 둥글게 펼칩니다.\n4. 참기름에 갓 무쳐낸 신선한 부추무침과 매콤한 다대기를 중앙에 올려 마무리합니다."},
-    "불고기 덮밥": {"재료": ["밥 200g", "소불고기 150g", "팽이버섯 30g", "간장소스 40g", "당면 20g"], "조리법": "1. 미리 불려둔 당면과 팽이버섯을 섭씨 100도의 끓는 물에서 1분간 데쳐냅니다.\n2. 얇게 슬라이스 된 소고기를 비법 간장 소스와 함께 팬에 넣고 160도에서 3분간 졸이듯 볶아줍니다.\n3. 고기의 단백질이 완전히 익고 소스가 자작하게 배어들면 조리를 멈춥니다.\n4. 넓은 그릇에 밥을 담고 그 위에 불고기와 당면을 흐트러지지 않게 올려 한식의 정갈함을 연출합니다."},
-    "돈까스 덮밥(가츠동)": {"재료": ["밥 200g", "수제 돈까스 1장(150g)", "계란 1개", "양파 40g", "가츠동 쯔유 50g"], "조리법": "1. 170도의 깨끗한 기름에서 돈까스를 5분간 튀긴 후 기름을 빼고 2cm 간격으로 일정하게 썰어줍니다.\n2. 전용 팬에 쯔유 소스와 채 썬 양파를 넣고 끓어오를 때까지 가열합니다.\n3. 양파가 투명해지면 썰어둔 돈까스를 얹고 가볍게 푼 계란물을 가장자리부터 둥글게 둘러 붓습니다.\n4. 뚜껑을 덮고 30초간 뜸을 들여 계란을 반숙 상태로 익힌 뒤, 밥 위에 원형 그대로 미끄러지듯 얹어냅니다."},
-    "오징어 덮밥": {"재료": ["밥 200g", "손질 오징어 150g", "양배추 40g", "대파 20g", "불맛 매운양념 40g"], "조리법": "1. 몸통과 다리를 분리하여 한 입 크기로 손질된 오징어를 준비합니다.\n2. 섭씨 250도로 달궈진 웍에 기름을 두르고 파를 먼저 볶아 파기름을 냅니다.\n3. 오징어와 양배추, 특제 불맛 양념을 동시에 투입하고 1분 30초 동안 초고속 강불 볶음을 진행하여 물이 생기는 것을 방지합니다.\n4. 매콤한 향이 올라오면 즉시 밥 위에 얹어 쫄깃한 식감을 살려 서빙합니다."},
-    "스팸 김치볶음밥": {"재료": ["밥 200g", "숙성 김치 120g", "스팸 70g", "계란 1개", "참기름 5g"], "조리법": "1. 적절히 산미가 도는 숙성 김치를 0.5cm 크기로, 스팸을 1cm 큐브 모양으로 정밀하게 깍둑썰기합니다.\n2. 스팸을 먼저 팬에 넣어 자체 기름을 뽑아내고, 그 기름에 김치를 넣어 2분간 볶아 감칠맛을 냅니다.\n3. 고슬고슬한 밥을 넣고 로봇 셰프의 주걱 팔을 이용해 밥알이 뭉치지 않도록 3분간 고르게 볶습니다.\n4. 마지막에 참기름을 두르고, 별도로 조리된 가장자리가 바삭한 계란프라이를 화룡점정으로 올립니다."},
-    "새우 볶음밥": {"재료": ["밥 200g", "칵테일 새우 100g", "대파 30g", "계란 1.5개", "굴소스 15g"], "조리법": "1. 파기름을 낸 후 새우를 넣어 표면이 붉은색으로 변할 때까지 1차 볶음을 진행합니다.\n2. 새우를 팬 한쪽으로 밀어두고 빈 공간에 계란물을 부어 스크램블을 만듭니다.\n3. 수분이 적은 볶음용 밥을 투입하고 모든 재료가 섞이도록 초당 2회의 속도로 팬을 흔들며(Tossing) 볶습니다.\n4. 굴소스를 팬 가장자리에 둘러 불맛을 입힌 뒤, 볼에 눌러 담았다가 접시에 뒤집어 예쁜 돔 모양으로 플레이팅합니다."},
-    "마파두부 덮밥": {"재료": ["밥 200g", "연두부 1팩(150g)", "다진 돼지고기 60g", "두반장 30g", "전분물 20g"], "조리법": "1. 부드러운 연두부를 깍둑썰기하여 형태가 부서지지 않게 끓는 물에 살짝 데쳐 준비합니다.\n2. 다진 고기를 마늘, 생강과 함께 볶다가 사천식 두반장 소스와 물을 넣고 끓여 베이스를 만듭니다.\n3. 끓는 소스에 데친 연두부를 조심스럽게 넣고 소스가 스며들도록 2분간 조립니다.\n4. 전분물을 조금씩 나누어 부으며 로봇 팔로 부드럽게 저어 완벽한 농도를 맞춘 뒤 밥 위에 덮습니다."},
-    "스테이크 덮밥": {"재료": ["밥 200g", "부채살 150g", "생와사비 5g", "양파 슬라이스 30g", "스테이크 소스 25g"], "조리법": "1. 로봇의 정밀 온도 제어 시스템을 통해 200도 철판에서 부채살의 겉면을 강하게 시어링(Searing)합니다.\n2. 내부 온도가 55도(미디엄 레어)에 도달하면 조리를 멈추고 3분간 레스팅(Resting)하여 육즙을 재분배합니다.\n3. 고기를 5mm 두께로 비스듬히 슬라이스하여 밥 위에 부채꼴 모양으로 펼쳐 올립니다.\n4. 매운맛을 뺀 얇은 양파 슬라이스와 생와사비를 곁들이고 달콤짭짤한 소스를 뿌려 고급스러움을 더합니다."},
-    "연어 덮밥(사케동)": {"재료": ["초대리 밥 200g", "생연어 슬라이스 120g", "무순 10g", "생와사비 5g", "특제 간장 20g"], "조리법": "1. 식초, 설탕, 소금을 황금 비율로 배합한 초대리를 밥에 섞어 체온과 비슷한 36도로 식혀 준비합니다.\n2. 신선한 생연어를 로봇의 초정밀 칼날을 이용해 8mm 두께로 일정한 각도로 슬라이스합니다.\n3. 초대리 밥 위에 연어 조각을 장미꽃잎처럼 겹겹이 둥글게 둘러 덮어줍니다.\n4. 중앙에 무순과 와사비를 다소곳이 얹고, 덮밥 전용 달짝지근한 간장을 별도 용기에 담아 제공합니다."},
-    "강된장 덮밥": {"재료": ["보리밥 200g", "우렁 강된장 120g", "상추 20g", "부추 10g", "참기름 5g"], "조리법": "1. 백미와 보리를 7:3 비율로 섞어 지은 건강한 보리밥을 그릇에 담습니다.\n2. 뚝배기에서 자박자박하게 끓여낸 짭조름한 밥도둑 우렁 강된장을 듬뿍 퍼서 밥 위에 얹습니다.\n3. 상추와 부추를 0.5cm 간격으로 채 썰어 강된장 주변에 빙 둘러 푸릇한 색감을 살립니다.\n4. 마지막으로 100% 통참깨를 착유한 진한 참기름을 한 바퀴 둘러 고소한 향을 극대화합니다."},
-    "명란 마요 덮밥": {"재료": ["밥 200g", "저염 명란젓 40g", "계란 노른자 1개", "마요네즈 25g", "어린잎 채소 15g"], "조리법": "1. 저염 명란젓의 얇은 막을 로봇 핀셋으로 제거하고 부드러운 알맹이만 조심스럽게 추출합니다.\n2. 밥 위에 어린잎 채소를 둥지 모양으로 깔고 그 중앙에 추출한 명란을 소복하게 올립니다.\n3. 명란의 짭짤함을 중화시켜 줄 마요네즈를 지그재그 패턴으로 정교하게 뿌립니다.\n4. 명란 바로 옆에 신선한 계란 노른자 1알을 터지지 않게 착륙시켜 톡 터뜨려 비벼 먹도록 유도합니다."},
-    "카레 볶음밥": {"재료": ["밥 200g", "카레 가루 20g", "다진 돼지고기 40g", "감자/당근 큐브 40g", "버터 10g"], "조리법": "1. 1cm 크기로 썬 감자와 당근, 돼지고기를 버터 10g을 두른 팬에서 완전히 익을 때까지 볶아냅니다.\n2. 찬밥 200g을 투입하고 밥알이 흩어지도록 주걱으로 가르며 볶습니다.\n3. 숙성된 특제 카레 가루를 넣고 뭉치는 곳 없이 전체적으로 샛노란 색이 입혀질 때까지 2분간 웍질합니다.\n4. 강불에서 30초간 마지막으로 볶아 카레의 스파이시한 풍미를 끌어올린 후 접시에 세팅합니다."},
-    "낙지 덮밥": {"재료": ["밥 200g", "통낙지 1마리(150g)", "아삭 콩나물 60g", "매운 고춧가루 양념 50g", "통깨 2g"], "조리법": "1. 굵은 소금으로 치대 불순물을 제거한 통낙지를 끓는 물에 10초만 데쳐 야들야들한 식감을 잡습니다.\n2. 250도의 초고온 웍에서 양배추, 양파와 함께 특제 매운 양념을 넣고 1분 내로 짧고 굵게 볶아냅니다.\n3. 밥 위에 매운맛을 중화시켜 줄 하얗게 데친 콩나물을 한 쪽에 듬뿍 쌓습니다.\n4. 콩나물 옆에 붉은 낙지볶음을 올리고 통깨를 솔솔 뿌려 침샘을 자극하는 비주얼을 완성합니다."},
-    "베이컨 계란 볶음밥": {"재료": ["밥 200g", "훈제 베이컨 50g", "계란 2개", "대파 20g", "후추 1g"], "조리법": "1. 훈제 베이컨을 1cm 너비로 썰어 팬에 올리고 약불에서 은근하게 가열하여 돼지기름을 충분히 뽑아냅니다.\n2. 베이컨 기름에 송송 썬 대파를 튀기듯 볶아 서양과 동양의 풍미가 결합된 베이컨 파기름을 완성합니다.\n3. 계란 2개를 풀어 스크램블을 만든 후 밥을 넣고 고슬고슬하게 볶아줍니다.\n4. 밥알 하나하나에 베이컨의 스모키한 향과 계란의 코팅이 입혀지면 굵은 흑후추를 갈아 넣어 완성합니다."},
-    "깍두기 볶음밥": {"재료": ["밥 200g", "잘 익은 깍두기 100g", "깍두기 국물 40g", "김가루 10g", "치즈 30g"], "조리법": "1. 새콤하게 잘 익은 깍두기를 물에 씻지 않고 양념장 그대로 0.5cm 크기로 잘게 다져 팬에 올립니다.\n2. 깍두기와 밥을 볶다가 비법인 깍두기 국물을 부어 전체적으로 붉고 먹음직스러운 색을 냅니다.\n3. 팬의 바닥에 밥을 얇게 펴서 누룽지가 생기도록 중약불에서 2분간 인내심을 갖고 지져냅니다.\n4. 치즈를 솔솔 뿌려 뚜껑을 덮어 녹인 뒤, 치즈가 길게 늘어나는 환상적인 볶음밥을 서빙합니다."}
+    "치킨 마요 덮밥": {"재료": ["밥 200g", "순살치킨 150g", "마요네즈 30g", "데리야끼소스 20g"], "조리법": "1. 180도 유온에서 치킨을 4분 30초간 튀김.\n2. 밥 위에 3cm 크기로 커팅한 치킨 안착.\n3. 데리야끼와 마요네즈 소스를 십자 격자로 분사."},
+    "참치 마요 덮밥": {"재료": ["밥 200g", "캔참치 120g", "마요네즈 40g", "조미김 5g"], "조리법": "1. 참치 캔 유분을 200N 압력으로 95% 압착 제거.\n2. 마요네즈와 참치를 30초간 균일 혼합.\n3. 밥 위에 돔 형태로 성형 후 김가루 토핑."},
+    "제육 덮밥": {"재료": ["밥 200g", "돼지전지 180g", "고추장양념 50g", "양파 30g"], "조리법": "1. 220도 고온 웍에서 고기와 양파를 2분간 초강불 시어링.\n2. 고추장 소스 투입 후 1분 30초간 가열하여 불맛 흡착.\n3. 밥 측면에 잔여 소스와 함께 서빙."},
+    "불고기 덮밥": {"재료": ["밥 200g", "소불고기 150g", "팽이버섯 30g", "간장소스 40g"], "조리법": "1. 160도 회전 팬에 소고기와 간장 소스 투입.\n2. 3분간 졸인 후 데친 팽이버섯 가미.\n3. 밥 상단에 국물과 함께 정갈하게 플레이팅."},
+    "돈까스 덮밥(가츠동)": {"재료": ["밥 200g", "돈까스 150g", "계란 1개", "쯔유소스 50g"], "조리법": "1. 170도에서 돈까스 5분간 튀김 후 2cm 간격 커팅.\n2. 쯔유 소스에 양파를 졸인 후 계란물을 둘러 30초간 반숙 유도.\n3. 밥 위에 미끄러지듯 안착."},
+    "오징어 덮밥": {"재료": ["밥 200g", "오징어 150g", "양배추 40g", "매운양념 40g"], "조리법": "1. 250도 웍에 파기름 유도 후 오징어, 양배추 투입.\n2. 매운 양념과 함께 1분 30초간 초고속 배출 조리.\n3. 수분 발생을 억제하여 즉시 배출."},
+    "스팸 김치볶음밥": {"재료": ["밥 200g", "숙성김치 120g", "스팸 70g", "계란 1개"], "조리법": "1. 1cm 큐브 스팸을 볶아 유분 추출.\n2. 스팸 기름에 김치 2분 볶음 후 고슬한 밥 가미.\n3. 주걱 팔로 3분간 혼합 분쇄 조리 후 계란프라이 안착."},
+    "새우 볶음밥": {"재료": ["밥 200g", "칵테일새우 100g", "계란 1.5개", "굴소스 15g"], "조리법": "1. 새우 유분 가열 후 계란 스크램블 병행.\n2. 수분 감축된 밥 투입 후 초당 2회 웍 태싱(Tossing).\n3. 굴소스를 팬 외곽에 둘러 풍미 결합."},
+    "마파두부 덮밥": {"재료": ["밥 200g", "연두부 150g", "다진돼지고기 60g", "두반장 30g"], "조리법": "1. 연두부 데침 과정 선행.\n2. 다진 고기와 두반장 소스를 끓여 베이스 구축.\n3. 연두부 가미 후 전분물로 농도 제어하여 완성."},
+    "스테이크 덮밥": {"재료": ["밥 200g", "부채살 150g", "와사비 5g", "스테이크소스 25g"], "조리법": "1. 200도 철판에서 부채살 표면 고속 시어링.\n2. 심부 온도 55도 도달 시 3분 레스팅 유도.\n3. 5mm 슬라이스 후 와사비와 소스 가미."},
+    "가지 덮밥": {"재료": ["밥 200g", "가지 120g", "다진고기 50g", "굴소스 20g"], "조리법": "1. 가지를 깍둑썰기하여 180도 고온에서 1분간 초고속 튀김.\n2. 다진 고기와 굴소스를 웍에서 졸여 양념 구축.\n3. 튀긴 가지를 양념에 버무려 밥 위에 안착."},
+    "연어 덮밥(사케동)": {"재료": ["초대리밥 200g", "생연어 120g", "무순 10g", "와사비 5g"], "조리법": "1. 배합초 혼합된 밥을 체온(36도)으로 정밀 냉각.\n2. 생연어를 8mm 각도로 초정밀 슬라이스.\n3. 밥 위에 방사형 플레이팅 후 와사비 중앙 안착."},
+    "강된장 덮밥": {"재료": ["보리밥 200g", "우렁강된장 120g", "부추 10g", "참기름 5g"], "조리법": "1. 보리밥 조리 후 그릇 배치.\n2. 자박하게 끓인 우렁 강된장 정량 투하.\n3. 0.5cm 커팅된 부추를 외곽에 두르고 참기름 분사."},
+    "명란 마요 덮밥": {"재료": ["밥 200g", "저염명란젓 40g", "노른자 1개", "마요네즈 25g"], "조리법": "1. 명란 외피 막 제거 후 알맹이 추출.\n2. 어린잎 채소 베이스 위에 명란 배치.\n3. 마요네즈 정밀 드립 후 노른자 파손 없이 안착."},
+    "카레 볶음밥": {"재료": ["밥 200g", "카레가루 20g", "감자당근큐브 40g", "버터 10g"], "조리법": "1. 버터 베이스에 감자, 당근 큐브 완숙 조리.\n2. 찬밥 투입 후 고온 파쇄 가공.\n3. 카레가루 투입 후 황색 불변 시점까지 2분간 웍질."},
+    "낙지 덮밥": {"재료": ["밥 200g", "통낙지 150g", "데친콩나물 60g", "매운양념 50g"], "조리법": "1. 낙지를 끓는 물에 10초간 토렴하여 식감 보존.\n2. 250도 웍에서 양념과 낙지를 고속 볶음.\n3. 데친 콩나물과 낙지볶음을 이분할 구획 정돈."},
+    "베이컨 계란 볶음밥": {"재료": ["밥 200g", "훈제베이컨 50g", "계란 2개", "대파 20g"], "조리법": "1. 베이컨 가열로 자체 동물성 유분 추출.\n2. 추출 유분에 파기름 동시 조성 후 계란 투입.\n3. 밥 가미 후 고슬한 텍스처 도달 시까지 3분 볶음."},
+    "양배추 계란 덮밥": {"재료": ["밥 200g", "양배추 100g", "계란 2개", "쯔유 15g"], "조리법": "1. 채 썬 양배추를 팬에서 숨이 죽을 때까지 가열.\n2. 쯔유 소스 주입 후 계란물을 고르게 분사.\n3. 뚜껑 폐쇄 후 잔열로 부드럽게 익혀 밥 위에 슬라이딩."},
+    "소고기 버섯 덮밥": {"재료": ["밥 200g", "우삼겹 100g", "느타리버섯 50g", "굴소스 15g"], "조리법": "1. 우삼겹 가열을 통해 불포화 유분 유도.\n2. 해당 유분에 버섯을 투입하여 풍미 극대화.\n3. 굴소스로 피니시 후 밥 위에 도포."},
+    "깍두기 볶음밥": {"재료": ["밥 200g", "다진깍두기 100g", "국물 40g", "피자치즈 30g"], "조리법": "1. 다진 깍두기를 소스와 함께 가열 가공.\n2. 밥 투입 후 국물 배합 조리.\n3. 바닥면 누룽지 2분간 인내 조리 후 치즈 융해 투하."},
+    "짜계치 덮밥": {"재료": ["밥 200g", "짜장소스 120g", "계란 1개", "체다치즈 1장"], "조리법": "1. 짜장 소스를 85도 온도로 뭉근하게 액상화.\n2. 밥 위에 소스 투하 후 단면 프라이 계란 안착.\n3. 계란 상단에 체다치즈를 배치하여 열 분산 유도."},
+    "꼬막 덮밥": {"재료": ["밥 200g", "자숙꼬막 120g", "부추 20g", "간장양념장 30g"], "조리법": "1. 해감 및 자숙된 꼬막살 정량 계량.\n2. 부추와 매콤한 청양간장 양념장에 꼬막 고속 믹싱.\n3. 밥 위에 비빔 원액 그대로 균일 도포."},
+    "장어 덮밥(우나동)": {"재료": ["밥 200g", "민물장어 150g", "초생강 10g", "데리야끼 타레 30g"], "조리법": "1. 초벌구이 장어에 타레 소스를 바르며 오븐 200도에서 3분 조리.\n2. 장어를 2cm 간격 크기로 크기 정렬 커팅.\n3. 소스를 뿌린 밥 위에 정렬 후 초생강 배치."},
+    "춘천 닭갈비 덮밥": {"재료": ["밥 200g", "닭다리살 160g", "양배추 50g", "닭갈비양념 45g"], "조리법": "1. 닭다리살을 정육면체 커팅 후 웍 가열.\n2. 깻잎, 양배추, 고구마 큐브와 양념 혼합 조리.\n3. 완전히 익은 닭갈비를 철판 감성으로 밥에 토핑."},
+    "대패삼겹살 덮밥": {"재료": ["밥 200g", "대패삼겹살 150g", "숙주 60g", "굴소스간장 25g"], "조리법": "1. 대패삼겹살을 고온 팬에서 바삭하게 급속 조리.\n2. 삼겹살 기름에 숙주와 굴소스 소스를 투입하여 30초 믹싱.\n3. 아삭함이 보존된 숙주와 고기를 밥에 배정."},
+    "하이라이스 덮밥": {"재료": ["밥 200g", "데미글라스소스 150g", "소고기슬라이스 40g", "양송이 20g"], "조리법": "1. 버터에 소고기와 양파, 양송이버섯을 캐러멜라이징.\n2. 데미글라스 소스와 물 배합 후 90도에서 졸임.\n3. 깊은 풍미의 소스를 밥 우측 영역에 배분."},
+    "짜장 볶음밥": {"재료": ["밥 200g", "춘장소스 40g", "다진채소 30g", "계란 1개"], "조리법": "1. 고온 파기름에 다진 야채와 밥을 볶아 볶음밥 선행.\n2. 별도 파트에서 춘장을 볶아 짜장 베이스 가공.\n3. 중화풍 볶음밥 주변에 짜장 소스를 원형으로 스크리닝."},
+    "마늘 볶음밥": {"재료": ["밥 200g", "통마늘슬라이스 30g", "마늘쫑 20g", "버터간장 15g"], "조리법": "1. 슬라이스 마늘을 기름에 튀겨 마늘 칩 가공.\n2. 다진 마늘과 마늘쫑을 버터에 볶아 알싸한 유분 추출.\n3. 밥과 소스를 배합 볶음 조리 후 상단에 마늘 칩 토핑."},
+    "게살 볶음밥": {"재료": ["밥 200g", "리얼크랩살 80g", "계란흰자 2개", "대파 20g"], "조리법": "1. 대파와 계란 흰자 스크램블을 부드럽게 가공.\n2. 수분 제어된 밥과 굴소스를 결합하여 초고속 웍질.\n3. 결대로 찢은 게살을 마지막에 투입하여 식감 보존 조리."},
+    "김치 베이컨 볶음밥": {"재료": ["밥 200g", "신김치 100g", "베이컨 40g", "참기름 5g"], "조리법": "1. 잘게 썬 베이컨의 크리스피 유분 도출.\n2. 김치를 추가하여 160도에서 풍미 융합 조리.\n3. 밥 투입 후 고온 볶음 처리, 참기름으로 마감."},
+    "육회 덮밥": {"재료": ["밥 200g", "소고기우둔살 100g", "배슬라이스 30g", "고추장배합양념 20g"], "조리법": "1. 신선 우둔살을 2mm 두께로 균일 컷팅 가공.\n2. 참기름, 다진마늘, 고추장 양념에 육회 고속 믹싱.\n3. 밥 위에 상추, 배 슬라이스 깔고 육회 안착."},
+    "새우장 덮밥": {"재료": ["밥 200g", "간장절임새우 5미", "달걀노른자 1개", "무순 5g"], "조리법": "1. 간장에 숙성된 새우의 껍질을 정밀 탈피.\n2. 한입 크기로 슬라이스 가공.\n3. 버터 간장 비빔밥 상단에 새우장을 방사형 정렬 후 노른자 배치."},
+    "전복장 덮밥": {"재료": ["밥 200g", "간장절임전복 2미", "게우소스 20g", "김가루 5g"], "조리법": "1. 숙성 전복을 껍질과 분리 후 슬라이스.\n2. 전복 내장(게우) 소스를 버터와 볶아 비빔 베이스 구축.\n3. 게우 소스 밥 위에 전복 슬라이스를 격자 정렬."},
+    "규동(소고기 덮밥)": {"재료": ["밥 200g", "우삼겹 130g", "양파 50g", "초생강 5g"], "조리법": "1. 가쓰오부시 육수와 간장 베이스 소스를 비등점까지 가열.\n2. 양파와 우삼겹을 투입하여 소스가 배어들도록 2분 가열.\n3. 소스 배합 고기를 밥 위에 가득 덮고 초생강 배치."},
+    "오삼불고기 덮밥": {"재료": ["밥 200g", "오징어 80g", "삼겹살 80g", "매콤양념 40g"], "조리법": "1. 두꺼운 삼겹살을 먼저 볶아 유분 조성.\n2. 오징어와 야채, 매운 고추장 소스 동시 투입.\n3. 240도 초고온에서 1분 20초간 급속 볶음 후 배출."},
+    "쭈꾸미 덮밥": {"재료": ["밥 200g", "손질쭈꾸미 150g", "천사채 30g", "초강력매운양념 50g"], "조리법": "1. 세척 주꾸미를 고온 스팀으로 15초간 1차 가열.\n2. 캡사이신 배합 매운 소스로 오븐 불맛 마찰 조리.\n3. 대접 밥 위에 주꾸미 낙하 후 마요 천사채 측면 배치."},
+    "매운 족발 덮밥": {"재료": ["밥 200g", "순살족발 140g", "직화불양념 40g", "땅콩분태 2g"], "조리법": "1. 콜라겐 가득한 족발을 1.5cm 크기로 다이스 커팅.\n2. 토치풍 직화 양념과 함께 웍에서 불길 마찰 조리.\n3. 밥 위에 매운 족발을 채우고 땅콩분태 분사 토핑."},
+    "닭간장 조림 덮밥": {"재료": ["밥 200g", "닭정육 150g", "꽈리고추 20g", "단짠간장소스 30g"], "조리법": "1. 닭정육 껍질면을 바닥으로 하여 팬 시어링 유도.\n2. 간장 타레 소스와 꽈리고추를 투입하여 링 형태로 조림.\n3. 밥 위에 윤기 나는 조림 닭고기와 고추 정렬."},
+    "버섯 굴소스 볶음밥": {"재료": ["밥 200g", "새송이표고버섯 60g", "청경채 30g", "굴소스 20g"], "조리법": "1. 새송이, 표고, 만가닥 버섯을 편 썰어 고온 가열.\n2. 청경채 투입 후 숨이 죽기 직전 고슬한 밥 가미.\n3. 프리미엄 굴소스로 코팅하듯 2분간 고속 볶음 조리."},
+    "소시지 야채 볶음밥": {"재료": ["밥 200g", "비엔나소시지 60g", "파프리카 30g", "케찹배합소스 25g"], "조리법": "1. 비엔나소시지에 칼집 조형 후 노릇하게 튀김 조리.\n2. 파프리카, 양파와 함께 케첩&돈가스 소스 믹싱.\n3. 밥과 재료가 한 몸이 되도록 주걱 믹싱 볶음 유도."},
+    "계란 간장 버터밥": {"재료": ["밥 200g", "버터 15g", "계란 2개", "비법맛간장 15g"], "조리법": "1. 밥 200g을 75도 최적 비빔 온도로 고온 유지 안착.\n2. 무염 버터를 밥 내부 중심부에 매립 가공.\n3. 서니사이드업 프라이 2개를 올린 후 맛간장 드립 분사."},
+    "텐동(튀김 덮밥)": {"재료": ["밥 200g", "모둠튀김(새우/단호박/김)", "텐동타레 25g"], "조리법": "1. 새우, 단호박, 김을 전용 튀김반죽으로 180도 가공.\n2. 밥 위에 텐동 전용 타레 소스를 나선형 드립.\n3. 바삭한 튀김들을 예술적 각도로 세워 플레이팅 마감."},
+    "항정살 명란 덮밥": {"재료": ["밥 200g", "항정살 130g", "구운명란 30g", "와사비마요 20g"], "조리법": "1. 아삭한 식감의 항정살을 기름을 빼며 바삭하게 구움.\n2. 명란을 오븐에 구워 잘게 다진 후 준비.\n3. 밥 위에 항정살 배열 후 다진 구운 명란과 와사비마요 분사."},
+    "닭가슴살 아보카도 덮밥": {"재료": ["현미밥 200g", "수비드닭가슴살 120g", "아보카도 0.5개", "스리라차마요 20g"], "조리법": "1. 60도에서 수비드 가공된 닭가슴살을 큐브 커팅.\n2. 잘 익은 아보카도를 얇게 슬라이스하여 정렬.\n3. 현미밥 위에 두 재료를 정돈하여 올린 후 다이어트 소스 맵핑."},
+    "우삼겹 숙주 덮밥": {"재료": ["밥 200g", "우삼겹 120g", "숙주나물 80g", "데리야끼간장 20g"], "조리법": "1. 우삼겹을 강불에 구워 고기 기름 축적.\n2. 고기 기름에 숙주를 넣고 굴소스와 함께 20초 단기 화력 볶음.\n3. 숨이 죽지 않은 아삭한 숙주와 고기를 밥 위에 푸짐하게 세팅."},
+    "대창 덮밥(호르몬동)": {"재료": ["밥 200g", "소대창 140g", "노른자 1개", "꽈리고추 2미"], "조리법": "1. 대창을 특제 대창 양념을 바르며 철판 직화 구이.\n2. 구운 대창을 1.5cm 두께로 커팅하여 정렬.\n3. 밥 위에 대창을 두르고 양파, 구운 꽈리고추, 노른자 마감."},
+    "고추잡채 덮밥": {"재료": ["밥 200g", "돼지고기슬라이스 60g", "피망 80g", "고추기름 15g"], "조리법": "1. 고추기름 베이스에 채 썬 돼지고기를 고속 가열.\n2. 얇게 채 썬 피망과 양파를 투입하여 중화풍 불맛 믹싱.\n3. 굴소스와 두반장으로 간을 맞춰 전용 대접 밥에 배분."},
+    "유산슬 덮밥": {"재료": ["밥 200g", "해삼류/새우 60g", "죽순팽이 50g", "전분소스 120g"], "조리법": "1. 채 썬 죽순, 표고버섯, 부추, 새우, 고기를 데침 가공.\n2. 간장 베이스 중화 육수에 재료를 넣고 끓임.\n3. 녹말가루 전분물로 걸쭉한 울면 점도를 구현하여 밥에 도포."},
+    "마라 볶음밥": {"재료": ["밥 200g", "우삼겹 50g", "청경채버섯 40g", "마라소스 20g"], "조리법": "1. 웍에 마라유와 우삼겹, 채소 분태를 가열 가공.\n2. 밥을 넣고 밥알 사이에 마라 소스가 스며들도록 파쇄 배합.\n3. 마라의 얼얼한 풍미가 극대화되는 시점까지 2분 30초 웍질."},
+    "중화풍 잡채밥": {"재료": ["밥 200g", "당면 80g", "잡채고기야채 60g", "중화간장소스 20g"], "조리법": "1. 불린 당면을 중화 간장 소스에 졸여 색과 맛 유도.\n2. 채 썬 고기, 피망, 목이버섯을 강불 파기름에 볶음 조리.\n3. 모든 재료와 당면을 고추기름에 최종 혼합 가열하여 밥 옆에 배정."}
 }
 
 @app.get("/", response_class=HTMLResponse)
 def home_page():
-    # 메뉴 목록 동적 생성
     menu_list_html = "".join([f'<button onclick="searchRecipe(\'{m}\')" class="menu-item">{m}</button>' for m in RECIPE_DB.keys()])
     
     return f"""
@@ -37,167 +66,166 @@ def home_page():
     <html>
     <head>
         <meta charset="UTF-8">
-        <title>ChefOS - AI Robot Dashboard</title>
+        <title>ChefOS v4.1 - AI Robot Control Center</title>
         <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
         <style>
-            body {{ background-color: #f8fafc; font-family: 'Inter', sans-serif; }}
-            .sidebar {{ width: 280px; background-color: #1e293b; color: white; height: 100vh; position: fixed; overflow-y: auto; }}
-            .menu-item {{ width: 100%; text-align: left; padding: 14px 24px; border-bottom: 1px solid #334155; font-size: 14px; font-weight: 500; transition: 0.2s; }}
-            .menu-item:hover {{ background-color: #334155; color: #38bdf8; padding-left: 30px; }}
-            .main-content {{ margin-left: 280px; padding: 40px; padding-bottom: 100px; }}
-            .recipe-card {{ background: white; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); overflow: hidden; }}
-            .status-tag {{ background: #dcfce7; color: #166534; padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: bold; letter-spacing: 0.5px; }}
+            body {{ background-color: #f1f5f9; font-family: 'Inter', sans-serif; }}
+            .sidebar {{ width: 300px; background-color: #0f172a; color: white; height: 100vh; position: fixed; overflow-y: auto; z-index: 10; }}
+            .menu-item {{ width: 100%; text-align: left; padding: 12px 24px; border-bottom: 1px solid #1e293b; font-size: 13px; font-weight: 500; transition: all 0.2s; color: #cbd5e1; }}
+            .menu-item:hover {{ background-color: #1e293b; color: #38bdf8; padding-left: 32px; }}
+            .main-content {{ margin-left: 300px; padding: 40px; }}
+            .recipe-card {{ background: white; border-radius: 24px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }}
+            .status-tag {{ background: #dcfce7; color: #15803d; padding: 6px 14px; border-radius: 99px; font-size: 12px; font-weight: 700; }}
+            ::-webkit-scrollbar {{ width: 6px; }}
+            ::-webkit-scrollbar-track {{ background: #0f172a; }}
+            ::-webkit-scrollbar-thumb {{ background: #334155; border-radius: 10px; }}
             
-            /* 스크롤바 꾸미기 */
-            ::-webkit-scrollbar {{ width: 8px; }}
-            ::-webkit-scrollbar-track {{ background: #1e293b; }}
-            ::-webkit-scrollbar-thumb {{ background: #475569; border-radius: 10px; }}
-            ::-webkit-scrollbar-thumb:hover {{ background: #64748b; }}
+            /* 🔥 추가된 팝업 이펙트 애니메이션 (에프터이펙트 스타일) */
+            @keyframes popIn {{
+                0% {{ transform: scale(0.5); opacity: 0; }}
+                60% {{ transform: scale(1.1); opacity: 1; }}
+                100% {{ transform: scale(1); opacity: 1; }}
+            }}
+            .animate-pop-in {{ animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }}
         </style>
     </head>
     <body class="flex">
         <div class="sidebar py-6">
-            <div class="px-6 mb-8 text-center">
-                <h1 class="text-2xl font-black text-blue-400 tracking-tight">ChefOS v3.0</h1>
-                <p class="text-xs text-gray-400 mt-2 font-medium tracking-widest uppercase">AI Kitchen System</p>
+            <div class="px-6 mb-6 text-center">
+                <h1 class="text-2xl font-black text-blue-400 tracking-tight">ChefOS v4.1</h1>
+                <p class="text-xs text-slate-400 mt-1 font-mono uppercase tracking-widest">Autonomous Kitchen Network</p>
             </div>
-            <div class="px-6 mb-4 text-xs font-bold text-gray-500 uppercase tracking-widest">Available Menus ({len(RECIPE_DB)})</div>
-            <div class="border-t border-gray-700">
+            <div class="px-6 mb-3 text-xs font-bold text-slate-500 uppercase tracking-widest">Active Recipe Database ({len(RECIPE_DB)} Menus)</div>
+            <div class="border-t border-slate-800">
                 {menu_list_html}
             </div>
         </div>
 
         <div class="main-content w-full relative">
             <div class="max-w-4xl mx-auto">
-                <div class="flex justify-between items-center mb-10">
-                    <div class="relative flex-1 max-w-xl">
-                        <input type="text" id="menuInput" placeholder="메뉴 이름을 검색하거나 왼쪽에서 메뉴를 클릭하세요..." 
-                               class="w-full pl-14 pr-6 py-4 rounded-2xl border border-gray-200 shadow-sm focus:ring-4 focus:ring-blue-100 outline-none text-gray-700 font-medium transition-all">
-                        <div class="absolute left-5 top-4 text-xl opacity-50">🔍</div>
+                <div class="flex justify-between items-center mb-8">
+                    <div class="relative flex-1 max-w-lg">
+                        <input type="text" id="menuInput" placeholder="메뉴 검색 또는 좌측 선택..." 
+                               class="w-full pl-12 pr-4 py-3.5 rounded-2xl border-none shadow-sm focus:ring-2 focus:ring-blue-500 outline-none font-medium">
+                        <div class="absolute left-4 top-4 text-gray-400">🔍</div>
                     </div>
-                    <div class="flex gap-4 ml-6">
-                        <span class="status-tag flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Network Active</span>
-                        <span class="status-tag flex items-center gap-2" style="background:#fef3c7; color:#92400e;">🤖 Robot ID: #SH-01</span>
+                    <div class="flex gap-3 ml-4">
+                        <span class="status-tag">Live Server Active</span>
+                        <span class="status-tag" style="background:#eff6ff; color:#1d4ed8;">Cloud Engine Connected</span>
                     </div>
                 </div>
 
-                <div id="welcomeMessage" class="text-center py-32 bg-white rounded-3xl border border-dashed border-gray-300">
-                    <div class="text-7xl mb-6">👨‍🍳</div>
-                    <h2 class="text-3xl font-black text-gray-800 tracking-tight">레시피 데이터를 호출하세요</h2>
-                    <p class="text-gray-500 mt-4 font-medium">좌측의 메뉴판에서 조리할 덮밥을 선택해 주십시오.</p>
+                <div id="welcomeMessage" class="text-center py-32 bg-white rounded-3xl border border-dashed border-slate-300">
+                    <div class="text-6xl mb-4">🤖</div>
+                    <h2 class="text-2xl font-bold text-slate-800">로봇 시스템 대기 중</h2>
+                    <p class="text-slate-500 mt-2">왼쪽 리스트의 50종 레시피 중 하나를 호출하여 원격 조리 명령을 내리십시오.</p>
                 </div>
 
-                <div id="resultArea" class="hidden recipe-card border border-gray-100">
-                    <div class="p-10 border-b border-gray-100 bg-gradient-to-r from-blue-50 to-white">
-                        <h2 id="resultTitle" class="text-3xl font-black text-gray-900 tracking-tight"></h2>
+                <div id="resultArea" class="hidden recipe-card border border-slate-100">
+                    <div class="p-8 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white">
+                        <h2 id="resultTitle" class="text-2xl font-black text-slate-900"></h2>
                     </div>
-                    <div class="p-10 space-y-10">
+                    <div class="p-8 space-y-8">
                         <div>
-                            <h3 class="text-xs font-black text-blue-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                ⚖️ Precision Ingredients (로봇 정밀 계량)
-                            </h3>
-                            <div id="ingredientsList" class="flex flex-wrap gap-3"></div>
+                            <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">g-Unit Ingredients Precision (계량 알고리즘)</h3>
+                            <div id="ingredientsList" class="flex flex-wrap gap-2.5"></div>
                         </div>
                         <div>
-                            <h3 class="text-xs font-black text-blue-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                ⚙️ Cooking Process (조리 세부 알고리즘)
-                            </h3>
-                            <div id="recipeText" class="text-base text-gray-700 leading-loose font-medium bg-gray-50 p-6 rounded-2xl border border-gray-100"></div>
+                            <h3 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-3">Mechanical Process Flow (로봇 공정식)</h3>
+                            <div id="recipeText" class="text-base text-slate-700 leading-relaxed font-medium bg-slate-50 p-6 rounded-xl border border-slate-200 whitespace-pre-line"></div>
                         </div>
-                        <div class="pt-6">
+                        <div class="pt-4">
                             <button id="sendBtn" onclick="sendToRobot()" 
-                                    class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-lg hover:bg-blue-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-200 flex justify-center items-center gap-3">
-                                <span>⚡ 로봇 셰프에게 조리 전송하기</span>
+                                    class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all transform hover:-translate-y-0.5">
+                                🚀 로봇 셰프에게 조리 전송하기
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div id="errorArea" class="hidden text-center py-10 bg-red-50 rounded-2xl text-red-600 font-bold border border-red-100 shadow-inner mt-4">
-                    ❌ 데이터베이스에 등록되지 않은 메뉴입니다. 메뉴명을 다시 확인해 주세요.
+                <div id="errorArea" class="hidden text-center py-8 bg-red-50 rounded-xl text-red-600 font-bold mt-4">
+                    데이터베이스에 식별되지 않는 메뉴명입니다.
                 </div>
             </div>
         </div>
 
-        <div id="toastNotification" class="fixed bottom-10 right-10 transform translate-y-32 opacity-0 transition-all duration-500 ease-out bg-gray-900 text-white px-8 py-5 rounded-2xl shadow-2xl flex items-center gap-5 z-50 border border-gray-700">
-            <div class="text-4xl">✅</div>
-            <div>
-                <h4 class="font-black text-lg tracking-tight text-green-400">전송 성공!</h4>
-                <p id="toastMessage" class="text-sm text-gray-300 font-medium mt-1">로봇 셰프에게 조리 명령이 하달되었습니다.</p>
+        <div id="successOverlay" class="fixed inset-0 bg-slate-900 bg-opacity-60 backdrop-blur-sm z-50 hidden flex justify-center items-center">
+            <div id="successModal" class="bg-white p-12 rounded-[2rem] shadow-2xl transform scale-0 text-center border-4 border-green-400">
+                <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                    <span class="text-5xl">✨</span>
+                </div>
+                <h2 class="text-4xl font-black text-slate-800 mb-3 tracking-tight">전송 완료!</h2>
+                <p id="overlayMenuName" class="text-lg text-slate-600 font-medium bg-slate-100 py-2 px-4 rounded-lg inline-block"></p>
+                <p class="text-sm text-green-600 font-bold mt-6 animate-pulse">로봇 셰프 #SH-01 조리 가동 중...</p>
             </div>
         </div>
 
         <script>
-            // 엔터키 검색
             document.getElementById("menuInput").addEventListener("keyup", function(e) {{
                 if (e.key === "Enter") {{ searchRecipe(this.value); }}
             }});
 
-            // 메뉴 검색 기능
             function searchRecipe(menuName) {{
                 if (!menuName) return;
-                
-                fetch(`/api/recipe?menu_name=${{encodeURIComponent(menuName)}}`)
-                    .then(res => {{
+                fetch('/api/recipe?menu_name=' + encodeURIComponent(menuName))
+                    .then(function(res) {{
                         if (!res.ok) throw new Error();
                         return res.json();
                     }})
-                    .then(data => {{
+                    .then(function(data) {{
                         document.getElementById("welcomeMessage").classList.add("hidden");
                         document.getElementById("errorArea").classList.add("hidden");
-                        const resultArea = document.getElementById("resultArea");
-                        resultArea.classList.remove("hidden");
+                        document.getElementById("resultArea").classList.remove("hidden");
                         
-                        document.getElementById("resultTitle").innerText = `✨ ${{data.menu}}`;
+                        document.getElementById("resultTitle").innerText = "✨ " + data.menu;
                         
-                        // 재료 렌더링
-                        const ingList = document.getElementById("ingredientsList");
+                        var ingList = document.getElementById("ingredientsList");
                         ingList.innerHTML = "";
-                        data.ingredients.forEach(item => {{
-                            const div = document.createElement("div");
-                            div.className = "bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 shadow-sm";
+                        data.ingredients.forEach(function(item) {{
+                            var div = document.createElement("div");
+                            div.className = "bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-xs font-bold text-slate-700 shadow-sm";
                             div.innerText = item;
                             ingList.appendChild(div);
                         }});
                         
-                        // 레시피 렌더링 (줄바꿈 인식)
-                        const formattedRecipe = data.recipe.replace(/\\n/g, '<br><br>');
-                        document.getElementById("recipeText").innerHTML = formattedRecipe;
+                        document.getElementById("recipeText").innerText = data.recipe;
                     }})
-                    .catch(() => {{
+                    .catch(function() {{
                         document.getElementById("welcomeMessage").classList.add("hidden");
                         document.getElementById("resultArea").classList.add("hidden");
                         document.getElementById("errorArea").classList.remove("hidden");
                     }});
             }}
 
-            // 🚀 전송 버튼 애니메이션 기능
+            // 🔥 애니메이션이 적용된 새로운 전송 로직
             function sendToRobot() {{
-                const btn = document.getElementById("sendBtn");
-                const toast = document.getElementById("toastNotification");
-                const menuName = document.getElementById("resultTitle").innerText.replace('✨ ', '');
+                var btn = document.getElementById("sendBtn");
+                var menuName = document.getElementById("resultTitle").innerText.replace("✨ ", "");
+                var overlay = document.getElementById("successOverlay");
+                var modal = document.getElementById("successModal");
                 
-                // 버튼 누른 효과 (버튼 텍스트 변경)
-                const originalText = btn.innerHTML;
-                btn.innerHTML = `<span class="animate-spin">⏳</span> 데이터 전송 중...`;
-                btn.classList.replace("bg-blue-600", "bg-gray-500");
+                // 버튼 누른 직후 로딩 연출
+                btn.innerText = "⚡ 시스템 무선 전송 중...";
+                btn.className = "w-full bg-slate-500 text-white py-4 rounded-xl font-bold text-lg cursor-not-allowed";
                 btn.disabled = true;
 
-                // 1초 뒤에 알림창 띄우기
-                setTimeout(() => {{
-                    // 버튼 원상복구
-                    btn.innerHTML = originalText;
-                    btn.classList.replace("bg-gray-500", "bg-blue-600");
+                // 0.8초 뒤 화면 정중앙에 팝업 이펙트 등장!
+                setTimeout(function() {{
+                    // 버튼 텍스트 원상복구
+                    btn.innerText = "🚀 로봇 셰프에게 조리 전송하기";
+                    btn.className = "w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:bg-blue-700 transition-all transform hover:-translate-y-0.5";
                     btn.disabled = false;
                     
-                    // 토스트 메시지 띄우기
-                    document.getElementById("toastMessage").innerText = `'${{menuName}}' 조리 명령이 #SH-01 로봇으로 하달되었습니다.`;
-                    toast.classList.remove("translate-y-32", "opacity-0");
+                    // 오버레이에 메뉴 이름 넣고 애니메이션 클래스 추가
+                    document.getElementById("overlayMenuName").innerText = "[" + menuName + "] 알고리즘 전송";
+                    overlay.classList.remove("hidden");
+                    modal.classList.add("animate-pop-in");
                     
-                    // 3.5초 뒤에 토스트 메시지 숨기기
-                    setTimeout(() => {{
-                        toast.classList.add("translate-y-32", "opacity-0");
-                    }}, 3500);
+                    // 2.5초 뒤에 스르륵 사라짐
+                    setTimeout(function() {{
+                        overlay.classList.add("hidden");
+                        modal.classList.remove("animate-pop-in");
+                    }}, 2500);
                 }}, 800);
             }}
         </script>
